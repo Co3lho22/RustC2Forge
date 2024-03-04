@@ -36,7 +36,5 @@ fn main() {
             }
         }
     }
-
-    drop(listener);
 }
 
