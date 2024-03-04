@@ -8,6 +8,8 @@ fn handle_client(mut stream: TcpStream){
     while match stream.read(&mut buffer) {
         Ok(size) => {
             let _ = stream.write_all(&mut buffer[0..size]);
+            let client_message = String::from_utf8_lossy(&mut buffer[..size]);
+            println!("Client message: {}", client_message);
             true
         },
         Err(_) => {
