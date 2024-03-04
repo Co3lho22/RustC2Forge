@@ -7,10 +7,10 @@ fn main() -> Result<()> {
     let message = "This is the windows 11 machine";
     stream.write_all(message.as_bytes())?;
 
-    let mut response = Vec::new();
-    stream.read(&mut response)?;
+    let mut buffer = vec![0; 1024];
+    let nbyte = stream.read(&mut buffer)?;
 
-    let response_str = String::from_utf8_lossy(&response);
+    let response_str = String::from_utf8_lossy(&buffer[..nbyte]);
     println!("Response: {}", response_str);
 
     Ok(())
