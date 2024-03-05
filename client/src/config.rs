@@ -1,4 +1,4 @@
-pub struct Config {
+struct Config {
     pub arch: String,
     pub network_info: Vec<(String, String)>,
     pub os: String,
@@ -15,6 +15,18 @@ impl Config {
             network_info,
             os,
         }
+    }
+
+    pub fn get_arch(&self) -> &String {
+        &self.arch
+    }
+
+    pub fn get_network_info(&self) -> &Vec<(String, String)> {
+        &self.network_info
+    }
+
+    pub fn get_os(&self) -> &String {
+        &self.os
     }
 }
 
