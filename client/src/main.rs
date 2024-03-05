@@ -1,6 +1,9 @@
 use std::io::{self, Read, Write, Result};
 use std::net::TcpStream;
 
+mod config;
+mod worker;
+
 fn main() -> Result<()> {
     let mut stream = TcpStream::connect("192.168.1.70:7878")?;
     println!("Connect to the server.");
