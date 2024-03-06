@@ -1,6 +1,8 @@
 use std::io::{self, Read, Write};
 use std::net::TcpStream;
 
+use crate::handler::command::help;
+
 pub fn handle_client(mut stream: TcpStream){
     let mut buffer = [0; 1024];
 
@@ -32,7 +34,13 @@ pub fn server() {
         io::stdin().read_line(&mut command).expect("Failed to read command");
         command = command.trim_end().to_owned();
 
+        if command == "help" {
+            help();
+        }
 
+        if command == "exit" {
+
+        }
     }
 }
 
