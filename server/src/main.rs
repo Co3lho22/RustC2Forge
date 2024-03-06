@@ -1,6 +1,6 @@
 use std::net::TcpListener;
 use std::thread;
-use crate::handler::network::handle_client;
+use crate::handler::utils::handle_client;
 use crate::handler::sys_info::get_os;
 
 mod handler;
