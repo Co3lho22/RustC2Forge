@@ -11,7 +11,6 @@ fn main() {
     let server_os: String = get_os();
     println!("Server listening on port 7878 | server_os = {}", server_os);
 
-
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {

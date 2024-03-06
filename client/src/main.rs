@@ -1,40 +1,21 @@
-use std::io::{self, Read, Write, Result};
+use serde_json::Result;
 use std::net::TcpStream;
+use crate::worker::network::connect_server;
+use crate::config::Config;
 
 mod config;
 mod worker;
 
 fn main() -> Result<()> {
-    let mut stream = TcpStream::connect("192.168.1.70:7878")?;
-    println!("Connect to the server.");
+    let ip = String::from("192.168.1.70");
+    let port = String::from("7878");
+    let stream = connect_server(ip, port);
+    println!("[I] Connected to server {}:{}.", ip, port);
 
-    loop {
-        let mut input = String::new();
-        println!("Enter a message to send to the server:");
-        io::stdin().read_line(&mut input)?;
-        if input.trim() == "exit" {
-            println!("Exiting.");
-            break;
-        }
-
-        stream.write_all(input.as_bytes())?;
-
-        let mut buffer = vec![0; 1024];
-        match stream.read(&mut buffer) {
-            Ok(0) => {
-                println!("Server closed the connection.");
-                break;
-            },
-            Ok(n) => {
-                let response_str = String::from_utf8_lossy(&buffer[..n]);
-                println!("Response from server: {}", response_str);
-            },
-            Err(e) => {
-                println!("An error occured: {}", e);
-                break;
-            }
-        }
-    }
+    // Create Config object and serialize it
+    let config = Config::new();
+    let config_json = config.to_json().expect("Failed to serialize Config");
+    stream.write_all(config_json.as_bytes())?;
 
     Ok(())
 }

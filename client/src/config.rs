@@ -1,19 +1,19 @@
-struct Config {
+use crate::worker::sys_info::{get_network_info, get_cpu_arch, get_os};
+use serde::{Serialize, Deserialize};
+
+#[derive(Serialize, Deserialize)]
+pub struct Config {
     pub arch: String,
     pub network_info: Vec<(String, String)>,
     pub os: String,
 }
 
 impl Config {
-    pub fn new(
-        arch: String,
-        network_info:Vec<(String, String)>,
-        os: String,
-    ) -> Self {
+    pub fn new() -> Self {
         Self {
-            arch,
-            network_info,
-            os,
+            arch: get_cpu_arch(),
+            network_info: get_network_info(),
+            os: get_os(),
         }
     }
 
@@ -27,6 +27,10 @@ impl Config {
 
     pub fn get_os(&self) -> &String {
         &self.os
+    }
+
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(&self)
     }
 }
 
