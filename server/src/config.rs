@@ -12,7 +12,7 @@ pub struct ClientConfig {
 #[derive(Debug)]
 pub struct ClientDetails {
     pub config: ClientConfig,
-    pub last_command: Option<String>,
+    pub command: Option<String>,
 }
 
 pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
@@ -42,6 +42,28 @@ impl ClientManager {
     pub fn list_clients(&self) -> Vec<String> {
         let clients = self.clients.lock().unwrap();
         clients.keys().cloned().collect()
+    }
+
+    pub fn get_command(&self, ip: &String) -> Option<String> {
+        let clients = self.clients.lock().unwrap();
+        clients.get(ip).and_then(|client_details| client_details.command.clone())
+    }
+
+
+    pub fn update_command(&self, ip: &String, cmd: String) -> Option<String>{
+        let mut clients = self.clients.lock().unwrap();
+        let cmd: Option<String> = Some(cmd);
+        if let Some(client_details) = clients.get_mut(ip) {
+            client_details.command = cmd.clone();
+            cmd
+        } else {
+            None
+        }
+    }
+
+    pub fn client_exists(&self, ip: &String) -> bool {
+        let clients = self.clients.lock().unwrap();
+        clients.contains_key(ip)
     }
 }
 

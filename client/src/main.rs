@@ -14,7 +14,7 @@ fn main() -> io::Result<()> {
 
     // Create Config object and serialize it
     let config = Config::new();
-    let config_json = config.to_json().expect("Failed to serialize Config");
+    let config_json = config.to_json().expect("Failed to serialize Config") + "\n";
     stream.write_all(config_json.as_bytes())?;
     stream.flush()?;
 
