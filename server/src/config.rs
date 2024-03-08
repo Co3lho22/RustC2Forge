@@ -61,6 +61,16 @@ impl ClientManager {
         }
     }
 
+    pub fn reset_command(&self, ip: &String) -> Result<(), String> {
+        let mut clients = self.clients.lock().unwrap();
+        if let Some(client_details) = clients.get_mut(ip) {
+            client_details.command = None;
+            Ok(())
+        } else {
+            Err(format!("Client with IP {} not found", ip))
+        }
+    }
+
     pub fn client_exists(&self, ip: &String) -> bool {
         let clients = self.clients.lock().unwrap();
         clients.contains_key(ip)
