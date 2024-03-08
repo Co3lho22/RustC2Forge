@@ -6,7 +6,8 @@ mod config;
 mod worker;
 
 fn main() -> io::Result<()> {
-    let ip = String::from("192.168.1.70");
+    // let ip = String::from("192.168.1.70");
+    let ip = String::from("127.0.0.1");
     let port = String::from("7878");
     let mut stream = connect_server(ip.clone(), port.clone())?;
     println!("[I] Connected to server {}:{}.", ip, port);

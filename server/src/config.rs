@@ -1,23 +1,46 @@
-pub struct Config {
-    pub server_ip: String,
-    pub server_port: String,
-    pub server_mac: String,
-    pub server_os: String,
+use serde::{Serialize, Deserialize};
+use std::collections::HashMap;
+use std::sync::{Arc, Mutex};
+
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ClientConfig {
+    pub arch: String,
+    pub network_info: Vec<(String, String)>,
+    pub os: String,
 }
 
-impl Config {
-    pub fn new(
-        server_ip: String,
-        server_port: String,
-        server_mac: String,
-        server_os: String,
-    ) -> Self {
+#[derive(Debug)]
+pub struct ClientDetails {
+    pub config: ClientConfig,
+    pub last_command: Option<String>,
+}
+
+pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
+
+pub struct ClientManager {
+    clients: ClientMap,
+}
+
+impl ClientManager {
+    pub fn new(&self) -> Self {
         Self {
-            server_ip,
-            server_port,
-            server_mac,
-            server_os,
+            clients: Arc::new(Mutex::new(HashMap::<String, ClientDetails>::new()))
         }
+    }
+
+    pub fn add_client(&self, ip: String, details: ClientDetails){
+        let mut clients = self.clients.lock().unwrap();
+        clients.insert(ip, details);
+    }
+
+    pub fn remove_client(&self, ip: &str) {
+        let mut clients = self.clients.lock().unwrap();
+        clients.remove(ip);
+    }
+
+    pub fn list_clients(&self) -> Vec<String> {
+        let clients = self.clients.lock().unwrap();
+        clients.keys().cloned().collect()
     }
 }
 
