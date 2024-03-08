@@ -17,13 +17,14 @@ pub struct ClientDetails {
 
 pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
 
+#[derive(Clone)]
 pub struct ClientManager {
     clients: ClientMap,
 }
 
 impl ClientManager {
-    pub fn new(&self) -> Self {
-        Self {
+    pub fn new() -> Self {
+        ClientManager {
             clients: Arc::new(Mutex::new(HashMap::<String, ClientDetails>::new()))
         }
     }

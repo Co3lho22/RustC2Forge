@@ -1,13 +1,11 @@
-use std::io::{self, BufRead, BufReader, Read, Write};
+use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::process;
-use std::sync::{Arc, Mutex};
-use std::collections::HashMap;
 
-use crate::config::{ClientConfig, ClientDetails, ClientMap};
+use crate::config::{ClientConfig, ClientDetails, ClientManager};
 use crate::handler::command::help;
 
-pub fn handle_client(mut stream: TcpStream, client_map: ClientMap){
+pub fn handle_client(mut stream: TcpStream, client_manager: ClientManager){
     let peer_addr = stream.peer_addr().unwrap().to_string();
     let mut buffer = Vec::new();
     let mut reader = BufReader::new(&stream);
@@ -20,10 +18,9 @@ pub fn handle_client(mut stream: TcpStream, client_map: ClientMap){
             match config {
                 Ok(config) => {
                     println!("Receive config from {}: {:?}", peer_addr, config);
-                    let mut map = client_map.lock().unwrap();
-                    map.insert(peer_addr.clone(), ClientDetails {
+                    client_manager.add_client(peer_addr.clone(), ClientDetails{
                         config,
-                        last_command: None,
+                        last_command: None
                     });
                 },
                 Err(e) => {
@@ -36,7 +33,7 @@ pub fn handle_client(mut stream: TcpStream, client_map: ClientMap){
     }
 }
 
-pub fn server(server_client_map: Arc<Mutex<HashMap<String, ClientDetails>>>) {
+pub fn server(server_client_manager: ClientManager) {
     let mut command = String::new();
 
     loop {
