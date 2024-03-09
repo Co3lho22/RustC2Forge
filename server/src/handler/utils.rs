@@ -1,10 +1,12 @@
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
 
-use crate::config::{ClientConfig, ClientDetails, ClientManager};
+use crate::config::{ClientConfig, ClientDetails, ClientManager, Command};
 use crate::handler::command::commands;
 
-fn send_command() {
+fn send_command(stream: &TcpStream, cmd: String) -> io::Result<()> {
+   let command = Command::new(cmd);
+
 
 }
 
@@ -34,11 +36,12 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
         if cmd != None {
             let cmd2 = cmd.unwrap();
             println!("[I] Sending '{}' command to {}", cmd2, ip);
-
+            // send_command(&stream, cmd);
 
             println!("[I] Wainting for the output of the command command '{}' \
                      sent to {}", cmd2, ip);
 
+            // command_output(&stream, cmd);
             client_manager.reset_command(&ip).unwrap();
         }
     }

@@ -36,17 +36,19 @@ fn shell(ip: String, server_client_manager: &ClientManager){
 
             cmd.clear();
             io::stdin().read_line(&mut cmd).unwrap();
+
             cmd = cmd.trim_end().to_owned();
+
+            if cmd.is_empty() {
+                continue
+            }
+
             if cmd == "exit" {
                 break
             }
+
             server_client_manager.update_command(&ip, cmd.clone());
         }
-
-        // func - execute command -> takes the command to execute, sends it to the client, and
-        // changes the command to None
-
-
     }
 }
 

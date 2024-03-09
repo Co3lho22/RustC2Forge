@@ -77,3 +77,18 @@ impl ClientManager {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Command {
+    name: String,
+    output: Option<String>,
+}
+
+impl Command {
+    pub fn new(name: String) -> Self {
+        Command {
+            name,
+            output: None,
+        }
+    }
+}
+
