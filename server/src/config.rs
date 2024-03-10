@@ -84,11 +84,15 @@ pub struct Command {
 }
 
 impl Command {
-    pub fn new(name: String) -> Self {
+    pub fn new(name: &String) -> Self {
         Command {
-            name,
+            name: name.clone(),
             output: None,
         }
+    }
+
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(&self)
     }
 }
 

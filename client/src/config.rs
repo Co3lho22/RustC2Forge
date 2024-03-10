@@ -34,3 +34,22 @@ impl Config {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Command {
+    name: String,
+    output: Option<String>,
+}
+
+impl Command {
+    pub fn new(name: &String) -> Self {
+        Command {
+            name: name.clone(),
+            output: None,
+        }
+    }
+
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(&self)
+    }
+}
+

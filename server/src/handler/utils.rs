@@ -4,10 +4,16 @@ use std::net::TcpStream;
 use crate::config::{ClientConfig, ClientDetails, ClientManager, Command};
 use crate::handler::command::commands;
 
-fn send_command(stream: &TcpStream, cmd: String) -> io::Result<()> {
+fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
    let command = Command::new(cmd);
 
+   let serialized_command = Command::to_json(&command).expect("Failed to \
+                                                serialize command") + "\n";
 
+    stream.write_all(serialized_command.as_bytes())?;
+    stream.flush()?;
+
+    Ok(())
 }
 
 pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
@@ -34,12 +40,12 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
     loop {
         let cmd: Option<String> = client_manager.get_command(&ip);
         if cmd != None {
-            let cmd2 = cmd.unwrap();
-            println!("[I] Sending '{}' command to {}", cmd2, ip);
-            // send_command(&stream, cmd);
+            let cmd = cmd.unwrap();
+            println!("[I] Sending '{}' command to {}", cmd, ip);
+            send_command(&stream, &cmd).unwrap();
 
             println!("[I] Wainting for the output of the command command '{}' \
-                     sent to {}", cmd2, ip);
+                     sent to {}", cmd, ip);
 
             // command_output(&stream, cmd);
             client_manager.reset_command(&ip).unwrap();
