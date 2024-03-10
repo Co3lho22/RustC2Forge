@@ -36,8 +36,8 @@ impl Config {
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Command {
-    name: String,
-    output: Option<String>,
+    pub name: String,
+    pub output: Option<String>,
 }
 
 impl Command {
@@ -50,6 +50,10 @@ impl Command {
 
     pub fn to_json(&self) -> serde_json::Result<String> {
         serde_json::to_string(&self)
+    }
+
+    pub fn command_name(&self) -> String {
+        self.name.clone()
     }
 }
 
