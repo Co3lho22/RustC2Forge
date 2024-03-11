@@ -2,11 +2,9 @@ use std::io::Write;
 use std::net::TcpListener;
 use std::{io, thread};
 use crate::handler::utils::{handle_client,
-                            listen_for_heartbeats,
-                            monitor_heartbeats,
                             server};
 use crate::config::ClientManager;
-
+use crate::handler::heartbeats::{listen_for_heartbeats, monitor_heartbeats};
 mod handler;
 mod config;
 
@@ -37,17 +35,13 @@ fn main() {
             Ok(stream) => {
                 // Thread that handle the communication with this client
                 let client_manager_clone = client_manager.clone();
-                let client_stream_1 = stream.try_clone().unwrap();
                 thread::spawn(move || {
-                    handle_client(client_stream_1, client_manager_clone);
+                    handle_client(stream, client_manager_clone);
                 });
-
                 // Thread that listenes for the heartbeats for this client
-                let client_stream_2 = stream.try_clone().unwrap();
                 let listen_heartbeats_client_manager_clone = client_manager.clone();
                 thread::spawn(move || {
-                    listen_for_heartbeats(client_stream_2,
-                                          listen_heartbeats_client_manager_clone)
+                    listen_for_heartbeats(listen_heartbeats_client_manager_clone)
                 });
             },
             Err(e) => {

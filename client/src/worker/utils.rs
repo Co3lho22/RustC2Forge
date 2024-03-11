@@ -127,12 +127,13 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
 /// * `stream`: A mutable reference to a TCPStream connected to the server.
 pub fn send_heartbeat_loop(stream: &mut TcpStream) {
     loop {
+        println!("[I] Sent heartbeat");
         let heartbeat_message = "heartbeat\n"; // Define your heartbeat message
         if let Err(e) = stream.write_all(heartbeat_message.as_bytes()) {
             println!("[E] Failed to send heartbeat: {}", e);
             break;
         }
-        std::thread::sleep(std::time::Duration::from_secs(3600));
+        std::thread::sleep(std::time::Duration::from_secs(30));
     }
 }
 
