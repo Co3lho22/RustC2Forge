@@ -12,11 +12,10 @@ help                           :    Shows available Commands
 
 exit                           :    To terminate session
 
-keylog_on                                       :    To start keylogger
+list-clients, lc               :    Lists all connected clients
 
-keylog_dump                                     :    To print keystrokes
-
-keylog_off                                      :    To close keylogger and self destruct the logged file
+shell                          :    Initiates a shell session with a specific client
+                                   using its IP and port. To exit the shell, use the 'exit' command
 
 "#;
 
