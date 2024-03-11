@@ -3,13 +3,13 @@ use std::net::TcpStream;
 use std::process::Command;
 use std::error::Error;
 
-use crate::config::{ClientConfig, ClientDetails, ClientManager, Command};
+use crate::config::{ClientConfig, ClientDetails, ClientManager, ClientCommand};
 use crate::handler::command::commands;
 
 fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
-   let command = Command::new(cmd);
+   let client_command = ClientCommand::new(cmd);
 
-   let serialized_command = Command::to_json(&command).expect("Failed to \
+   let serialized_command = ClientCommand::to_json(&client_command).expect("Failed to \
                                                 serialize command") + "\n";
 
     stream.write_all(serialized_command.as_bytes())?;
@@ -18,21 +18,23 @@ fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
     Ok(())
 }
 
-fn command_output(reader: &mut BufReader<TcpStream>) -> Result<Command, Box<dyn Error>> {
+fn command_output(reader: &mut BufReader<&TcpStream>)
+    -> Result<ClientCommand, Box<dyn Error>> {
+
     let mut buffer = Vec::new();
     match reader.read_until(b'\n', &mut buffer) {
-        Ok(bytes) => {
-            match serde_json::from_slice::<Command>(&buffer) {
+        Ok(_) => {
+            match serde_json::from_slice::<ClientCommand>(&buffer) {
                 Ok(command_with_output) => Ok(command_with_output),
                 Err(e) => {
                     println!("[E] Failed to deserialize command output: {}", e);
-                    Err(e)
+                    Err(Box::new(e))
                 },
             }
         },
         Err(e) => {
             println!("[E] Failed to read from stream: {}", e);
-            Err(e)
+            Err(Box::new(e))
         }
     }
 }
@@ -69,7 +71,9 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
             println!("[I] Wainting for the output of the command command '{}' \
                      sent to {}", cmd, ip);
 
-            let command: Command = command_output(&mut reader);
+            let command: ClientCommand = command_output(&mut reader).unwrap();
+            println!("Command {} output:\n{}", cmd, command.output.unwrap());
+
             client_manager.reset_command(&ip).unwrap();
         }
     }

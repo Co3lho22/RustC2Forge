@@ -78,14 +78,14 @@ impl ClientManager {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Command {
+pub struct ClientCommand {
     name: String,
-    output: Option<String>,
+    pub output: Option<String>,
 }
 
-impl Command {
+impl ClientCommand {
     pub fn new(name: &String) -> Self {
-        Command {
+        ClientCommand {
             name: name.clone(),
             output: None,
         }

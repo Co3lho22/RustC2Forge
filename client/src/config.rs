@@ -35,14 +35,14 @@ impl Config {
 }
 
 #[derive(Serialize, Deserialize, Debug)]
-pub struct Command {
+pub struct C2Command {
     pub name: String,
     pub output: Option<String>,
 }
 
-impl Command {
+impl C2Command {
     pub fn new(name: &String) -> Self {
-        Command {
+        C2Command {
             name: name.clone(),
             output: None,
         }
