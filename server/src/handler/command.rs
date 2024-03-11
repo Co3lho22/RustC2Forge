@@ -37,7 +37,17 @@ shell                          :    Initiates a shell session with a specific cl
 /// `ip`: IP and port of the client to connect to.
 /// `server_client_manager`: Reference to the `ClientManager` for managing client commands.
 fn shell(ip: String, server_client_manager: &ClientManager){
-    println!("To exit the {} shell use 'exit' command", ip);
+    println!(
+        "\n------------------------------------------------------------\n\
+        Welcome to the dedicated shell for client {}\n\
+        ------------------------------------------------------------\n\
+        You are now in a direct command line interface with the selected client machine.\n\
+        Any commands you enter here will be executed on the client's machine,\n\
+        and the output will be displayed in this shell.\n\
+        Type 'exit' at any time to return to the main C2 Shell.\n",
+        ip
+        );
+
     let mut cmd = String::new();
     loop {
         let cmd_status: Option<String> = server_client_manager.get_command(&ip);
@@ -82,13 +92,13 @@ pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
         },
         "list-clients" | "lc" => {
             let client_list: Vec<String> = server_client_manager.list_clients();
-            println!("\nClients:");
+            println!("\nConnected Clients:\n");
             for client in client_list {
-                println!("{}", client);
+                println!("{}\n", client);
             }
         },
         "shell" => {
-            println!("Which Client? (IP:PORT)");
+            println!("Enter the Client(Format: IP:PORT)");
             let mut ip = String::new();
             io::stdin().read_line(&mut ip).unwrap();
             ip = ip.trim_end().to_owned();
@@ -101,37 +111,6 @@ pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
         },
         _ => println!("Unknown command. Type 'help' for a list of commands."),
     }
-
-//
-//    if cmd == "help" {
-//        help();
-//    }
-//
-//    if cmd == "exit" {
-//        println!("Entered the command Exit");
-//        process::exit(0);
-//    }
-//
-//    if cmd == "list-clients" || cmd == "lc" {
-//        let client_list: Vec<String> = server_client_manager.list_clients();
-//        println!("\nClients:");
-//        for client in client_list {
-//            println!("{}", client);
-//        }
-//    }
-//
-//    if cmd == "shell" {
-//        println!("Which Client?(IP:PORT)");
-//        let mut ip = String::new();
-//        io::stdin().read_line(&mut ip).unwrap();
-//        ip = ip.trim_end().to_owned();
-//
-//        if server_client_manager.client_exists(&ip) {
-//            shell(ip, server_client_manager);
-//        } else {
-//            println!("Client {} does not exists", &ip);
-//        }
-//    }
 }
 
 /// Sends a serialized command to the connected client via TCP stream.

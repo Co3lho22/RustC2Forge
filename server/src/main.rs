@@ -15,7 +15,7 @@ mod config;
 /// heartbeats, and monitoring client connections.
 fn main() {
     let listener = TcpListener::bind("0.0.0.0:49151").unwrap();
-    println!("Server listening on port 49151");
+    // println!("[I] Server listening on port 49151");
     io::stdout().flush().unwrap();
 
     let client_manager: ClientManager = ClientManager::new();
@@ -27,6 +27,7 @@ fn main() {
     // Thread to remove Clients not connected
     let heartbeat_client_manager_clone = client_manager.clone();
     thread::spawn(move || {
+        // println!("[I] Monitor heartbeats");
         monitor_heartbeats(heartbeat_client_manager_clone);
     });
 
@@ -35,13 +36,15 @@ fn main() {
             Ok(stream) => {
                 // Thread that handle the communication with this client
                 let client_manager_clone = client_manager.clone();
+                let ip = stream.peer_addr().unwrap().to_string();
                 thread::spawn(move || {
                     handle_client(stream, client_manager_clone);
                 });
+
                 // Thread that listenes for the heartbeats for this client
                 let listen_heartbeats_client_manager_clone = client_manager.clone();
                 thread::spawn(move || {
-                    listen_for_heartbeats(listen_heartbeats_client_manager_clone)
+                    listen_for_heartbeats(listen_heartbeats_client_manager_clone, ip)
                 });
             },
             Err(e) => {

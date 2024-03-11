@@ -27,7 +27,7 @@ pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
 /// Manages client connections, including adding, removing, and querying client details.
 #[derive(Clone)]
 pub struct ClientManager {
-    clients: ClientMap,
+    pub clients: ClientMap,
 }
 
 impl ClientManager {
@@ -119,12 +119,11 @@ impl ClientManager {
     /// `ip`: The IP address of the client.
     pub fn update_heartbeat(&self, ip: &String) {
         let mut clients = self.clients.lock().unwrap();
-
+        // println!("[I] Updating heartbeat for client {}", ip);
         if let Some(details) = clients.get_mut(ip) {
             details.last_heartbeat = Instant::now();
-            println!("[I] Updated heartbeat for client {}", ip);
+            // println!("[I] Updated heartbeat for client {}", ip);
         }
-
     }
 
     /// Checks for clients that have not sent a heartbeat within a specified threshold.
@@ -132,11 +131,13 @@ impl ClientManager {
     /// Returns a Vector of IP addresses for clients that have exceeded the heartbeat threshold.
     pub fn check_heartbeats(&self) -> Vec<String> {
         let now = Instant::now();
-        let heartbeat_threshold = std::time::Duration::from_secs(12*60*60); // 12h
+        // let heartbeat_threshold = std::time::Duration::from_secs(12*60*60); // 12h
+        let heartbeat_threshold = std::time::Duration::from_secs(60);
 
         let clients = self.clients.lock().unwrap();
         clients.iter()
             .filter_map(|(ip, details)| {
+
                if now.duration_since(details.last_heartbeat) > heartbeat_threshold {
                     Some(ip.clone())
                } else {
