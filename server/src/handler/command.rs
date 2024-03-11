@@ -36,7 +36,6 @@ fn shell(ip: String, server_client_manager: &ClientManager){
 
             cmd.clear();
             io::stdin().read_line(&mut cmd).unwrap();
-
             cmd = cmd.trim_end().to_owned();
 
             if cmd.is_empty() {
@@ -75,6 +74,7 @@ pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
         let mut ip = String::new();
         io::stdin().read_line(&mut ip).unwrap();
         ip = ip.trim_end().to_owned();
+
         if server_client_manager.client_exists(&ip) {
             shell(ip, server_client_manager);
         } else {

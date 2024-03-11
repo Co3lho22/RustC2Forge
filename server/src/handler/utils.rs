@@ -1,6 +1,5 @@
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
-use std::process::Command;
 use std::error::Error;
 
 use crate::config::{ClientConfig, ClientDetails, ClientManager, ClientCommand};
@@ -9,8 +8,8 @@ use crate::handler::command::commands;
 fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
    let client_command = ClientCommand::new(cmd);
 
-   let serialized_command = ClientCommand::to_json(&client_command).expect("Failed to \
-                                                serialize command") + "\n";
+   let serialized_command = ClientCommand::to_json(&client_command).expect(
+       "Failed to serialize command") + "\n";
 
     stream.write_all(serialized_command.as_bytes())?;
     stream.flush()?;
@@ -48,7 +47,6 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
     if let Ok(_) = reader.read_until(b'\n', &mut buffer) {
         match serde_json::from_slice::<ClientConfig>(&buffer) {
             Ok(config) => {
-                // println!("[I] Received config from {}: {:?}", ip, config);
                 client_manager.add_client(ip.clone(), ClientDetails {
                     config,
                     command: None,
