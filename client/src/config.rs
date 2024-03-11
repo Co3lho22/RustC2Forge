@@ -17,18 +17,6 @@ impl Config {
         }
     }
 
-    pub fn get_arch(&self) -> &String {
-        &self.arch
-    }
-
-    pub fn get_network_info(&self) -> &Vec<(String, String)> {
-        &self.network_info
-    }
-
-    pub fn get_os(&self) -> &String {
-        &self.os
-    }
-
     pub fn to_json(&self) -> serde_json::Result<String> {
         serde_json::to_string(&self)
     }
@@ -38,22 +26,5 @@ impl Config {
 pub struct C2Command {
     pub name: String,
     pub output: Option<String>,
-}
-
-impl C2Command {
-    pub fn new(name: &String) -> Self {
-        C2Command {
-            name: name.clone(),
-            output: None,
-        }
-    }
-
-    pub fn to_json(&self) -> serde_json::Result<String> {
-        serde_json::to_string(&self)
-    }
-
-    pub fn command_name(&self) -> String {
-        self.name.clone()
-    }
 }
 

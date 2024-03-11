@@ -8,8 +8,8 @@ mod handler;
 mod config;
 
 fn main() {
-    let listener = TcpListener::bind("0.0.0.0:7878").unwrap();
-    println!("Server listening on port 7878");
+    let listener = TcpListener::bind("0.0.0.0:49151").unwrap();
+    println!("Server listening on port 49151");
     io::stdout().flush().unwrap();
 
     let client_manager: ClientManager = ClientManager::new();
