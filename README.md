@@ -27,9 +27,9 @@ cargo run --bin client
 ```
 
 # Features
-Reverse Shell: Facilitates the execution of commands from the server on the connected client, acting as a basic form of a reverse shell.
+- Reverse Shell: Facilitates the execution of commands from the server on the connected client, acting as a basic form of a reverse shell.
 
-Heartbeat: A mechanism to check whether the client (victim) is still connected and active.
+- Heartbeat: A mechanism to check whether the client (victim) is still connected and active.
 
 # Run RustC2Forge Locally
 To quickly test the project, you can use your local machine as both the server and the client. This setup was my primary development environment.
