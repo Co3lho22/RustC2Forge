@@ -46,7 +46,6 @@ pub fn listen_for_heartbeats_aux(stream: TcpStream, client_manager: ClientManage
         match reader.read_until(b'\n', &mut buffer) {
             Ok(bytes) => {
                 if bytes == 0 {
-                    println!("[I] Connection closed by client: {}", ip);
                     client_manager.remove_client(&ip);
                     break;
                 }
