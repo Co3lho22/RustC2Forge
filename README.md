@@ -2,6 +2,8 @@
 ![](images/name.png)
 
 RustC2Forge is a Command and Control (C2) server implemented in Rust, designed for educational purposes. This project represents my inaugural venture into Rust development, with the primary objective of familiarizing myself with the language. The essence of RustC2Forge is a basic reverse shell capability, laying a foundation for future expansion and the addition of more sophisticated features.
+## Disclamer
+This project has been tested only on Unix Systems.
 
 # Environment Setup
 To run this project, you must have Rust installed on your computer. For installation instructions and more information on Rust, please visit the [the official Rust website](https://www.rust-lang.org/tools/install).

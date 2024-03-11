@@ -138,7 +138,7 @@ pub fn send_heartbeat_loop(stream: &mut TcpStream) {
             println!("[E] Failed to send heartbeat: {}", e);
             break;
         }
-        std::thread::sleep(std::time::Duration::from_secs(5*60));
+        std::thread::sleep(std::time::Duration::from_secs(30));
     }
 }
 
