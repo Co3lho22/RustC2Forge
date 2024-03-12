@@ -1,9 +1,11 @@
+mod sys_info;
+mod handler;
+mod config;
+
 use std::io::{self};
 use std::net::TcpStream;
-use crate::worker::utils::{listening_for_instructions, send_sys_info};
 
-mod config;
-mod worker;
+use handler::{send_sys_info, listening_for_instructions};
 
 /// The main entry point of the client application.
 ///

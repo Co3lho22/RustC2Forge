@@ -1,4 +1,4 @@
-use crate::worker::sys_info::{get_network_info, get_cpu_arch, get_os};
+use crate::sys_info::{get_network_info, get_cpu_arch, get_os};
 use serde::{Serialize, Deserialize};
 
 /// Represents the configuration of the client system.
