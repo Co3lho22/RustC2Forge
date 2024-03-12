@@ -1,13 +1,10 @@
 mod client;
 mod terminal;
 
-use std::io::{BufRead, BufReader, Write};
-use std::net::{TcpListener, TcpStream};
-use std::{io, process, thread};
-use std::collections::HashMap;
+use std::io::{BufRead, Write};
+use std::net::TcpListener;
+use std::{io, thread};
 use std::error::Error;
-use std::sync::{Arc, Mutex};
-use std::time::Instant;
 use serde::{Deserialize, Serialize};
 
 
@@ -36,7 +33,7 @@ fn main() {
             Ok(stream) => {
                 // Thread that handle the communication with this client
                 let client_manager_clone = client_manager.clone();
-                let ip = stream.peer_addr().unwrap().to_string();
+                //let ip = stream.peer_addr().unwrap().to_string();
                 thread::spawn(move || {
                     handle_client(stream, client_manager_clone);
                 });
