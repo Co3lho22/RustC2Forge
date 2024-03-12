@@ -1,6 +1,5 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
 use serde::{Deserialize, Serialize};
 
 /// Represents the configuration details of a client.
@@ -19,9 +18,7 @@ pub struct ClientConfig {
 pub struct ClientDetails {
     pub config: ClientConfig,
     pub command: Option<String>,
-    pub last_heartbeat: Instant,
 }
-
 
 
 // Struct used to store and send the command to execute to the client
@@ -32,9 +29,9 @@ pub struct ClientCommand {
 }
 
 impl ClientCommand {
-    pub fn new(name: &String) -> Self {
+    pub fn new(cmd: &String) -> Self {
         ClientCommand {
-            name: name.clone(),
+            name: cmd.clone(),
             output: None,
         }
     }
@@ -141,36 +138,5 @@ impl ClientManager {
         clients.contains_key(ip)
     }
 
-    /// Updates the heartbeat timestamp for a given client.
-    ///
-    /// `ip`: The IP address of the client.
-    pub fn update_heartbeat(&self, ip: &String) {
-        let mut clients = self.clients.lock().unwrap();
-        // println!("[I] Updating heartbeat for client {}", ip);
-        if let Some(details) = clients.get_mut(ip) {
-            details.last_heartbeat = Instant::now();
-            // println!("[I] Updated heartbeat for client {}", ip);
-        }
-    }
 
-    /// Checks for clients that have not sent a heartbeat within a specified threshold.
-    ///
-    /// Returns a Vector of IP addresses for clients that have exceeded the heartbeat threshold.
-    pub fn check_heartbeats(&self) -> Vec<String> {
-        let now = Instant::now();
-        // let heartbeat_threshold = std::time::Duration::from_secs(12*60*60); // 12h
-        let heartbeat_threshold = std::time::Duration::from_secs(60);
-
-        let clients = self.clients.lock().unwrap();
-        clients.iter()
-            .filter_map(|(ip, details)| {
-
-                if now.duration_since(details.last_heartbeat) > heartbeat_threshold {
-                    Some(ip.clone())
-                } else {
-                    None
-                }
-            })
-            .collect()
-    }
 }
