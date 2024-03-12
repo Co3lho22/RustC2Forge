@@ -10,7 +10,7 @@ pub struct ClientConfig {
     pub user: String,
     pub hostname: String,
     pub arch: String,
-    pub network_info: Vec<(String, String)>,
+    //pub network_info: Vec<(String, String)>,
     pub os: String,
 }
 
