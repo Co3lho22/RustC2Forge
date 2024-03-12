@@ -1,7 +1,7 @@
-use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
+use serde::{Deserialize, Serialize};
 
 /// Represents the configuration details of a client.
 ///
@@ -21,6 +21,33 @@ pub struct ClientDetails {
     pub command: Option<String>,
     pub last_heartbeat: Instant,
 }
+
+
+
+// Struct used to store and send the command to execute to the client
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ClientCommand {
+    pub name: String,
+    pub output: Option<String>,
+}
+
+impl ClientCommand {
+    pub fn new(name: &String) -> Self {
+        ClientCommand {
+            name: name.clone(),
+            output: None,
+        }
+    }
+
+    /// Serializes the `ClientCommand` to a JSON string.
+    ///
+    /// Returns the JSON string if successful, or an error if serialization fails.
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(&self)
+    }
+}
+
+
 
 pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
 
@@ -138,36 +165,12 @@ impl ClientManager {
         clients.iter()
             .filter_map(|(ip, details)| {
 
-               if now.duration_since(details.last_heartbeat) > heartbeat_threshold {
+                if now.duration_since(details.last_heartbeat) > heartbeat_threshold {
                     Some(ip.clone())
-               } else {
+                } else {
                     None
-               }
+                }
             })
             .collect()
     }
 }
-
-// Struct used to store and send the command to execute to the client
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ClientCommand {
-    pub name: String,
-    pub output: Option<String>,
-}
-
-impl ClientCommand {
-    pub fn new(name: &String) -> Self {
-        ClientCommand {
-            name: name.clone(),
-            output: None,
-        }
-    }
-
-    /// Serializes the `ClientCommand` to a JSON string.
-    ///
-    /// Returns the JSON string if successful, or an error if serialization fails.
-    pub fn to_json(&self) -> serde_json::Result<String> {
-        serde_json::to_string(&self)
-    }
-}
-

