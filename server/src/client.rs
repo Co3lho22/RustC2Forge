@@ -5,8 +5,10 @@ use serde::{Deserialize, Serialize};
 /// Represents the configuration details of a client.
 ///
 /// Includes architectural information, network interfaces, and operating system details.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClientConfig {
+    pub user: String,
+    pub hostname: String,
     pub arch: String,
     pub network_info: Vec<(String, String)>,
     pub os: String,
@@ -14,7 +16,7 @@ pub struct ClientConfig {
 
 /// Stores detailed information about a client, including its configuration,
 /// optional command to execute, and the last heartbeat received.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ClientDetails {
     pub config: ClientConfig,
     pub command: Option<String>,
@@ -94,6 +96,16 @@ impl ClientManager {
     pub fn get_command(&self, ip: &String) -> Option<String> {
         let clients = self.clients.lock().unwrap();
         clients.get(ip).and_then(|client_details| client_details.command.clone())
+    }
+
+
+    pub fn get_client_details(&self, ip: &String) -> Option<ClientDetails> {
+        let clients = self.clients.lock().unwrap();
+        if self.client_exists(&ip){
+            clients.get(ip);
+        }
+
+        None
     }
 
     /// Updates the command for a given client.

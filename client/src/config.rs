@@ -1,4 +1,4 @@
-use crate::sys_info::{get_network_info, get_cpu_arch, get_os};
+use crate::sys_info::{get_network_info, get_cpu_arch, get_os, get_current_user, get_hostname};
 use serde::{Serialize, Deserialize};
 
 /// Represents the configuration of the client system.
@@ -9,6 +9,8 @@ use serde::{Serialize, Deserialize};
 /// to the server.
 #[derive(Serialize, Deserialize)]
 pub struct Config {
+    pub user: String,
+    pub hostname: String,
     pub arch: String,
     pub network_info: Vec<(String, String)>,
     pub os: String,
@@ -17,6 +19,8 @@ pub struct Config {
 impl Config {
     pub fn new() -> Self {
         Self {
+            user: get_current_user(),
+            hostname: get_hostname(),
             arch: get_cpu_arch(),
             network_info: get_network_info(),
             os: get_os(),

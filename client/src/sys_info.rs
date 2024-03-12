@@ -15,6 +15,18 @@ pub fn get_os() -> String {
     os.to_string()
 }
 
+
+// username
+pub fn get_current_user() -> String {
+    whoami::username()
+}
+
+
+// hostname
+pub fn get_hostname() -> String {
+    whoami::hostname()
+}
+
 /// Retrieves network interface information of the client.
 ///
 /// Iterates over all network interfaces available on the client machine,

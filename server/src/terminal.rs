@@ -25,18 +25,23 @@ pub fn handle_client(stream: TcpStream, client_manager: ClientManager){
 
         match serde_json::from_slice::<ClientConfig>(&buffer) {
             Ok(config) => {
-                client_manager.add_client(ip.clone(), ClientDetails {
-                    config,
-                    command: None
-                });
-                println!("New client! {}", ip);
 
+                let client_details = ClientDetails {
+                    config: config.clone(),
+                    command: None
+                };
+
+                client_manager.add_client(ip.clone(), client_details);
+                println!("New client: {} [{:?}]", ip, config);
 
             },
+
             Err(e) => println!("[E] Failed to deserialize Client Config from \
                                {}: {}", ip, e),
         }
     }
+
+
 
     // Command processing loop
     loop {
