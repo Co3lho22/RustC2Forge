@@ -1,26 +1,52 @@
-use serde::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::time::Instant;
+use serde::{Deserialize, Serialize};
 
 /// Represents the configuration details of a client.
 ///
 /// Includes architectural information, network interfaces, and operating system details.
-#[derive(Serialize, Deserialize, Debug)]
+#[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct ClientConfig {
+    pub user: String,
+    pub hostname: String,
     pub arch: String,
-    pub network_info: Vec<(String, String)>,
+    //pub network_info: Vec<(String, String)>,
     pub os: String,
 }
 
 /// Stores detailed information about a client, including its configuration,
 /// optional command to execute, and the last heartbeat received.
-#[derive(Debug)]
+#[derive(Serialize, Deserialize, Debug)]
 pub struct ClientDetails {
     pub config: ClientConfig,
     pub command: Option<String>,
-    pub last_heartbeat: Instant,
 }
+
+
+// Struct used to store and send the command to execute to the client
+#[derive(Serialize, Deserialize, Debug)]
+pub struct ClientCommand {
+    pub name: String,
+    pub output: Option<String>,
+}
+
+impl ClientCommand {
+    pub fn new(cmd: &String) -> Self {
+        ClientCommand {
+            name: cmd.clone(),
+            output: None,
+        }
+    }
+
+    /// Serializes the `ClientCommand` to a JSON string.
+    ///
+    /// Returns the JSON string if successful, or an error if serialization fails.
+    pub fn to_json(&self) -> serde_json::Result<String> {
+        serde_json::to_string(&self)
+    }
+}
+
+
 
 pub type ClientMap = Arc<Mutex<HashMap<String, ClientDetails>>>;
 
@@ -72,6 +98,16 @@ impl ClientManager {
         clients.get(ip).and_then(|client_details| client_details.command.clone())
     }
 
+
+    pub fn get_client_details(&self, ip: &String) -> Option<ClientDetails> {
+        let clients = self.clients.lock().unwrap();
+        if self.client_exists(&ip){
+            clients.get(ip);
+        }
+
+        None
+    }
+
     /// Updates the command for a given client.
     ///
     /// `ip`: The IP address of the client.
@@ -114,60 +150,5 @@ impl ClientManager {
         clients.contains_key(ip)
     }
 
-    /// Updates the heartbeat timestamp for a given client.
-    ///
-    /// `ip`: The IP address of the client.
-    pub fn update_heartbeat(&self, ip: &String) {
-        let mut clients = self.clients.lock().unwrap();
-        // println!("[I] Updating heartbeat for client {}", ip);
-        if let Some(details) = clients.get_mut(ip) {
-            details.last_heartbeat = Instant::now();
-            // println!("[I] Updated heartbeat for client {}", ip);
-        }
-    }
 
-    /// Checks for clients that have not sent a heartbeat within a specified threshold.
-    ///
-    /// Returns a Vector of IP addresses for clients that have exceeded the heartbeat threshold.
-    pub fn check_heartbeats(&self) -> Vec<String> {
-        let now = Instant::now();
-        // let heartbeat_threshold = std::time::Duration::from_secs(12*60*60); // 12h
-        let heartbeat_threshold = std::time::Duration::from_secs(60);
-
-        let clients = self.clients.lock().unwrap();
-        clients.iter()
-            .filter_map(|(ip, details)| {
-
-               if now.duration_since(details.last_heartbeat) > heartbeat_threshold {
-                    Some(ip.clone())
-               } else {
-                    None
-               }
-            })
-            .collect()
-    }
 }
-
-// Struct used to store and send the command to execute to the client
-#[derive(Serialize, Deserialize, Debug)]
-pub struct ClientCommand {
-    pub name: String,
-    pub output: Option<String>,
-}
-
-impl ClientCommand {
-    pub fn new(name: &String) -> Self {
-        ClientCommand {
-            name: name.clone(),
-            output: None,
-        }
-    }
-
-    /// Serializes the `ClientCommand` to a JSON string.
-    ///
-    /// Returns the JSON string if successful, or an error if serialization fails.
-    pub fn to_json(&self) -> serde_json::Result<String> {
-        serde_json::to_string(&self)
-    }
-}
-

